@@ -1720,7 +1720,7 @@ export default function RoomPage() {
                     )
                   }
                   placeholder={
-                    room.password_enabled
+                    room?.password_enabled
                       ? "CHANGE PASSWORD..."
                       : "NEW ROOM PASSWORD..."
                   }
