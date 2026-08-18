@@ -1773,12 +1773,12 @@ export default function RoomPage() {
                 >
                   {passwordSaving
                     ? "SAVING..."
-                    : room.password_enabled
+                    : room?.password_enabled
                     ? "CHANGE PASSWORD"
                     : "ENABLE PASSWORD"}
                 </button>
 
-                {room.password_enabled && (
+                {room?.password_enabled && (
                   <button
                     onClick={
                       removeRoomPassword
@@ -1820,7 +1820,7 @@ export default function RoomPage() {
                     "10px",
                 }}
               >
-                {room.password_enabled
+                {room?.password_enabled
                   ? "🔒 PASSWORD PROTECTION IS ACTIVE."
                   : "THIS ROOM IS CURRENTLY OPEN TO ANYONE WITH THE LINK."}
               </p>
