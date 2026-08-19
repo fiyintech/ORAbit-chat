@@ -26,6 +26,37 @@ function generateAdminKey() {
   return `admin_${crypto.randomUUID()}_${crypto.randomUUID()}`;
 }
 
+const durationOptions = [
+  {
+    value: 1,
+    label: "1 MIN",
+  },
+  {
+    value: 5,
+    label: "5 MIN",
+  },
+  {
+    value: 15,
+    label: "15 MIN",
+  },
+  {
+    value: 30,
+    label: "30 MIN",
+  },
+  {
+    value: 50,
+    label: "50 MIN",
+  },
+  {
+    value: 60,
+    label: "1 HR",
+  },
+  {
+    value: 120,
+    label: "2 HR",
+  },
+];
+
 export default function Home() {
   const router = useRouter();
 
@@ -39,7 +70,9 @@ export default function Home() {
     useState("");
 
   const createRoom = async () => {
-    if (creating) return;
+    if (creating) {
+      return;
+    }
 
     setCreating(true);
     setError("");
@@ -58,13 +91,6 @@ export default function Home() {
               60 *
               1000
         ).toISOString();
-
-      /*
-       * The admin key is NOT put in
-       * the room URL.
-       *
-       * It stays in this browser.
-       */
 
       const { error } =
         await supabase
@@ -90,27 +116,10 @@ export default function Home() {
         return;
       }
 
-      /*
-       * Store the creator's private
-       * admin key locally.
-       *
-       * Opening the same room in
-       * another normal tab keeps
-       * admin access.
-       *
-       * Incognito does not get it.
-       */
-
       localStorage.setItem(
         `orabit-admin-${code}`,
         adminKey
       );
-
-      /*
-       * Keep the older creator key
-       * too so existing room logic
-       * doesn't suddenly break.
-       */
 
       localStorage.setItem(
         `orabit-creator-${code}`,
@@ -155,23 +164,24 @@ export default function Home() {
           </label>
 
           <div className="duration-options">
-            {[1, 5, 15, 30].map(
-              (value) => (
+            {durationOptions.map(
+              (option) => (
                 <button
-                  key={value}
+                  key={option.value}
+                  type="button"
                   className={
                     minutes ===
-                    value
+                    option.value
                       ? "selected"
                       : ""
                   }
                   onClick={() =>
                     setMinutes(
-                      value
+                      option.value
                     )
                   }
                 >
-                  {value} MIN
+                  {option.label}
                 </button>
               )
             )}
@@ -214,3 +224,4 @@ export default function Home() {
     </main>
   );
 }
+
