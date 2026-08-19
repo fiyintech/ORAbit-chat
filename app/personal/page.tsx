@@ -18,43 +18,48 @@ type PersonalMessage = {
   created_at: string;
 };
 
-function generateOrabitId() {
+function generateOrabitId(): string {
   const uuid = crypto.randomUUID();
 
   return (
     "ORA-" +
-    uuid
-      .replace(/-/g, "")
-      .slice(0, 8)
-      .toUpperCase()
+    uuid.replace(/-/g, "").slice(0, 8).toUpperCase()
   );
 }
 
 export default function PersonalMessages() {
-  const [profile, setProfile] =
-    useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
-  const [messages, setMessages] =
-    useState<PersonalMessage[]>([]);
+  const [messages, setMessages] = useState<PersonalMessage[]>([]);
 
-  const [opening, setOpening] =
-    useState<string | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
 
   const [openedMessage, setOpenedMessage] =
     useState<PersonalMessage | null>(null);
 
-  const [timeLeft, setTimeLeft] =
-    useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
+
+  const [recipientId, setRecipientId] = useState("");
+
+  const [recipient, setRecipient] = useState<Profile | null>(null);
+
+  const [searching, setSearching] = useState(false);
+
+  const [searchMessage, setSearchMessage] = useState("");
+
+  const [messageText, setMessageText] = useState("");
+
+  const [sending, setSending] = useState(false);
+
+  const [sendSuccess, setSendSuccess] = useState("");
 
   /*
-   * Load the anonymous profile
-   * belonging to this browser.
+   * Load this browser's permanent
+   * anonymous ORAbit profile.
    */
   useEffect(() => {
     const loadProfile = async () => {
@@ -62,33 +67,23 @@ export default function PersonalMessages() {
         setLoading(true);
         setError("");
 
-        let profileId =
-          localStorage.getItem(
-            "orabit-profile-id"
-          );
+        let profileId = localStorage.getItem(
+          "orabit-profile-id"
+        );
 
-        let currentProfile:
-          | Profile
-          | null = null;
+        let currentProfile: Profile | null = null;
 
         /*
-         * First try the profile ID
-         * already stored on this device.
+         * If this browser already has
+         * an ORAbit profile, load it.
          */
         if (profileId) {
-          const {
-            data,
-            error: profileError,
-          } = await supabase
-            .from("profiles")
-            .select(
-              "id, orabit_id"
-            )
-            .eq(
-              "id",
-              profileId
-            )
-            .maybeSingle();
+          const { data, error: profileError } =
+            await supabase
+              .from("profiles")
+              .select("id, orabit_id")
+              .eq("id", profileId)
+              .maybeSingle();
 
           if (profileError) {
             console.error(
@@ -96,37 +91,28 @@ export default function PersonalMessages() {
               profileError
             );
           } else if (data) {
-            currentProfile =
-              data;
+            currentProfile = data;
           }
         }
 
         /*
-         * If this device has never
-         * created a profile, create one.
+         * Create a permanent profile
+         * only if this browser does
+         * not already have one.
          */
         if (!currentProfile) {
-          const orabitId =
-            generateOrabitId();
+          const orabitId = generateOrabitId();
 
-          const {
-            data,
-            error: createError,
-          } = await supabase
-            .from("profiles")
-            .insert({
-              orabit_id:
-                orabitId,
-            })
-            .select(
-              "id, orabit_id"
-            )
-            .single();
+          const { data, error: createError } =
+            await supabase
+              .from("profiles")
+              .insert({
+                orabit_id: orabitId,
+              })
+              .select("id, orabit_id")
+              .single();
 
-          if (
-            createError ||
-            !data
-          ) {
+          if (createError || !data) {
             console.error(
               "Profile creation error:",
               createError
@@ -140,8 +126,7 @@ export default function PersonalMessages() {
             return;
           }
 
-          currentProfile =
-            data;
+          currentProfile = data;
 
           localStorage.setItem(
             "orabit-profile-id",
@@ -149,36 +134,25 @@ export default function PersonalMessages() {
           );
         }
 
-        setProfile(
-          currentProfile
-        );
+        setProfile(currentProfile);
 
         /*
-         * Load all unopened messages
-         * waiting for this profile.
+         * Load unopened messages.
          */
         const {
           data: inbox,
           error: inboxError,
         } = await supabase
-          .from(
-            "personal_messages"
-          )
+          .from("personal_messages")
           .select("*")
           .eq(
             "receiver_id",
             currentProfile.id
           )
-          .is(
-            "opened_at",
-            null
-          )
-          .order(
-            "created_at",
-            {
-              ascending: false,
-            }
-          );
+          .is("opened_at", null)
+          .order("created_at", {
+            ascending: false,
+          });
 
         if (inboxError) {
           console.error(
@@ -190,16 +164,12 @@ export default function PersonalMessages() {
             "Could not load your messages."
           );
         } else {
-          setMessages(
-            inbox || []
-          );
+          setMessages(inbox || []);
         }
 
         setLoading(false);
       } catch (loadError) {
-        console.error(
-          loadError
-        );
+        console.error(loadError);
 
         setError(
           "Something went wrong."
@@ -213,10 +183,174 @@ export default function PersonalMessages() {
   }, []);
 
   /*
-   * Open a message.
+   * Search for another user
+   * using their public ORAbit ID.
+   */
+  const searchRecipient = async () => {
+    const normalizedId =
+      recipientId
+        .trim()
+        .toUpperCase();
+
+    setRecipient(null);
+    setSearchMessage("");
+    setSendSuccess("");
+
+    if (!normalizedId) {
+      setSearchMessage(
+        "ENTER AN ORABIT ID."
+      );
+      return;
+    }
+
+    if (!/^ORA-[A-Z0-9]{8}$/.test(normalizedId)) {
+      setSearchMessage(
+        "INVALID ORABIT ID FORMAT."
+      );
+      return;
+    }
+
+    if (
+      profile &&
+      normalizedId ===
+        profile.orabit_id.toUpperCase()
+    ) {
+      setSearchMessage(
+        "YOU CANNOT MESSAGE YOURSELF."
+      );
+      return;
+    }
+
+    setSearching(true);
+
+    try {
+      const { data, error: searchError } =
+        await supabase
+          .from("profiles")
+          .select("id, orabit_id")
+          .eq(
+            "orabit_id",
+            normalizedId
+          )
+          .maybeSingle();
+
+      if (searchError) {
+        console.error(
+          "Recipient search error:",
+          searchError
+        );
+
+        setSearchMessage(
+          "COULD NOT SEARCH FOR THIS ID."
+        );
+
+        return;
+      }
+
+      if (!data) {
+        setSearchMessage(
+          "NO ORABIT USER FOUND WITH THAT ID."
+        );
+
+        return;
+      }
+
+      setRecipient(data);
+    } catch (searchError) {
+      console.error(searchError);
+
+      setSearchMessage(
+        "SOMETHING WENT WRONG."
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  /*
+   * Send a temporary personal message.
    *
-   * The countdown starts ONLY
-   * when the receiver opens it.
+   * IMPORTANT:
+   * The message does NOT receive
+   * an expiry time here.
+   *
+   * Its timer begins only when
+   * the receiver opens it.
+   */
+  const sendMessage = async () => {
+    if (!profile || !recipient) {
+      return;
+    }
+
+    const trimmedMessage =
+      messageText.trim();
+
+    if (!trimmedMessage) {
+      setSearchMessage(
+        "WRITE A MESSAGE FIRST."
+      );
+      return;
+    }
+
+    if (trimmedMessage.length > 1000) {
+      setSearchMessage(
+        "MESSAGE IS TOO LONG. MAXIMUM 1000 CHARACTERS."
+      );
+      return;
+    }
+
+    setSending(true);
+    setSearchMessage("");
+    setSendSuccess("");
+
+    try {
+      const { error: sendError } =
+        await supabase
+          .from("personal_messages")
+          .insert({
+            sender_id:
+              profile.id,
+            receiver_id:
+              recipient.id,
+            message:
+              trimmedMessage,
+            opened_at: null,
+            expires_at: null,
+          });
+
+      if (sendError) {
+        console.error(
+          "Send message error:",
+          sendError
+        );
+
+        setSearchMessage(
+          "COULD NOT SEND MESSAGE."
+        );
+
+        return;
+      }
+
+      setMessageText("");
+
+      setSendSuccess(
+        "MESSAGE SENT. IT WILL DISAPPEAR AFTER THE RECIPIENT OPENS IT."
+      );
+    } catch (sendError) {
+      console.error(sendError);
+
+      setSearchMessage(
+        "SOMETHING WENT WRONG WHILE SENDING."
+      );
+    } finally {
+      setSending(false);
+    }
+  };
+
+  /*
+   * Open a received message.
+   *
+   * The countdown starts HERE.
    */
   const openMessage = async (
     message: PersonalMessage
@@ -228,15 +362,12 @@ export default function PersonalMessages() {
       return;
     }
 
-    setOpening(
-      message.id
-    );
-
+    setOpening(message.id);
     setError("");
 
     /*
-     * Calculate reading time
-     * from message length.
+     * Reading time is based on
+     * message length.
      *
      * Minimum: 5 seconds
      * Maximum: 30 seconds
@@ -252,42 +383,35 @@ export default function PersonalMessages() {
       )
     );
 
-    const now =
-      new Date();
+    const now = new Date();
 
-    const expires =
-      new Date(
-        now.getTime() +
-          seconds * 1000
-      );
+    const expires = new Date(
+      now.getTime() +
+        seconds * 1000
+    );
 
     /*
-     * Mark the message as opened.
-     *
-     * opened_at IS NULL makes sure
-     * an unopened message can only
-     * be started once.
+     * Set opened_at and expires_at
+     * only when the receiver opens
+     * the message.
      */
-    const {
-      error: openError,
-    } = await supabase
-      .from(
-        "personal_messages"
-      )
-      .update({
-        opened_at:
-          now.toISOString(),
-        expires_at:
-          expires.toISOString(),
-      })
-      .eq(
-        "id",
-        message.id
-      )
-      .is(
-        "opened_at",
-        null
-      );
+    const { error: openError } =
+      await supabase
+        .from("personal_messages")
+        .update({
+          opened_at:
+            now.toISOString(),
+          expires_at:
+            expires.toISOString(),
+        })
+        .eq(
+          "id",
+          message.id
+        )
+        .is(
+          "opened_at",
+          null
+        );
 
     if (openError) {
       console.error(
@@ -303,42 +427,38 @@ export default function PersonalMessages() {
       return;
     }
 
-    const updatedMessage:
-      PersonalMessage = {
-      ...message,
-      opened_at:
-        now.toISOString(),
-      expires_at:
-        expires.toISOString(),
-    };
+    const updatedMessage: PersonalMessage =
+      {
+        ...message,
+        opened_at:
+          now.toISOString(),
+        expires_at:
+          expires.toISOString(),
+      };
 
     /*
      * Remove it from the inbox
-     * immediately after opening.
+     * as soon as it is opened.
      */
-    setMessages(
-      (current) =>
-        current.filter(
-          (item) =>
-            item.id !==
-            message.id
-        )
+    setMessages((current) =>
+      current.filter(
+        (item) =>
+          item.id !==
+          message.id
+      )
     );
 
     setOpenedMessage(
       updatedMessage
     );
 
-    setTimeLeft(
-      seconds
-    );
+    setTimeLeft(seconds);
 
     setOpening(null);
   };
 
   /*
-   * Countdown while a message
-   * is being displayed.
+   * Countdown for opened message.
    */
   useEffect(() => {
     if (
@@ -350,43 +470,40 @@ export default function PersonalMessages() {
     }
 
     const interval =
-      window.setInterval(
-        () => {
-          const expiresAt =
-            new Date(
-              openedMessage.expires_at as string
-            ).getTime();
+      window.setInterval(() => {
+        const expiresAt =
+          new Date(
+            openedMessage.expires_at as string
+          ).getTime();
 
-          const remaining =
-            Math.max(
-              0,
-              Math.ceil(
-                (expiresAt -
-                  Date.now()) /
-                  1000
-              )
-            );
-
-          setTimeLeft(
-            remaining
+        const remaining =
+          Math.max(
+            0,
+            Math.ceil(
+              (expiresAt -
+                Date.now()) /
+                1000
+            )
           );
 
-          if (
-            remaining <= 0
-          ) {
-            window.clearInterval(
-              interval
-            );
+        setTimeLeft(
+          remaining
+        );
 
-            setOpenedMessage(
-              null
-            );
+        if (
+          remaining <= 0
+        ) {
+          window.clearInterval(
+            interval
+          );
 
-            setTimeLeft(0);
-          }
-        },
-        250
-      );
+          setOpenedMessage(
+            null
+          );
+
+          setTimeLeft(0);
+        }
+      }, 250);
 
     return () => {
       window.clearInterval(
@@ -396,11 +513,10 @@ export default function PersonalMessages() {
   }, [openedMessage]);
 
   /*
-   * Realtime listener.
+   * Real-time inbox.
    *
-   * A new personal message
-   * appears in the inbox without
-   * requiring a page refresh.
+   * A newly sent message appears
+   * automatically without refresh.
    */
   useEffect(() => {
     if (!profile) {
@@ -428,11 +544,6 @@ export default function PersonalMessages() {
             const incoming =
               payload.new as PersonalMessage;
 
-            /*
-             * Ignore anything that
-             * somehow already has an
-             * opened timestamp.
-             */
             if (
               incoming.opened_at !==
               null
@@ -524,71 +635,222 @@ export default function PersonalMessages() {
         )}
 
         {!openedMessage && (
-          <div className="message-inbox">
-            <div className="inbox-header">
-              <span>
-                INBOX
-              </span>
-
-              <span>
-                {messages.length}{" "}
-                WAITING
-              </span>
-            </div>
-
-            {messages.length ===
-            0 ? (
-              <div className="empty-inbox">
-                <p>
-                  NO PERSONAL
-                  MESSAGES
-                </p>
+          <>
+            <div className="personal-send-panel">
+              <div className="inbox-header">
+                <span>
+                  SEND PERSONAL
+                  MESSAGE
+                </span>
 
                 <span>
-                  Messages sent to
-                  your ORAbit ID
-                  will appear here.
+                  ANONYMOUS
                 </span>
               </div>
-            ) : (
-              <div className="message-list">
-                {messages.map(
-                  (message) => (
+
+              <label
+                htmlFor="recipient-id"
+              >
+                RECIPIENT ORABIT ID
+              </label>
+
+              <div className="recipient-search">
+                <input
+                  id="recipient-id"
+                  type="text"
+                  value={
+                    recipientId
+                  }
+                  onChange={(event) => {
+                    setRecipientId(
+                      event.target.value.toUpperCase()
+                    );
+
+                    setRecipient(
+                      null
+                    );
+
+                    setSearchMessage(
+                      ""
+                    );
+
+                    setSendSuccess(
+                      ""
+                    );
+                  }}
+                  onKeyDown={(
+                    event
+                  ) => {
+                    if (
+                      event.key ===
+                      "Enter"
+                    ) {
+                      searchRecipient();
+                    }
+                  }}
+                  placeholder="ORA-XXXXXXXX"
+                  maxLength={12}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+
+                <button
+                  type="button"
+                  onClick={
+                    searchRecipient
+                  }
+                  disabled={
+                    searching
+                  }
+                >
+                  {searching
+                    ? "SEARCHING..."
+                    : "SEARCH"}
+                </button>
+              </div>
+
+              {recipient && (
+                <div className="recipient-found">
+                  <span>
+                    RECIPIENT FOUND
+                  </span>
+
+                  <strong>
+                    {recipient.orabit_id}
+                  </strong>
+                </div>
+              )}
+
+              {searchMessage && (
+                <p className="error-message">
+                  {searchMessage}
+                </p>
+              )}
+
+              {recipient && (
+                <div className="send-message-form">
+                  <label
+                    htmlFor="personal-message"
+                  >
+                    YOUR MESSAGE
+                  </label>
+
+                  <textarea
+                    id="personal-message"
+                    value={
+                      messageText
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      setMessageText(
+                        event.target.value
+                      )
+                    }
+                    placeholder="WRITE A TEMPORARY MESSAGE..."
+                    maxLength={1000}
+                    rows={6}
+                  />
+
+                  <div className="message-compose-footer">
+                    <small>
+                      {messageText.length}
+                      /1000
+                    </small>
+
                     <button
-                      key={
-                        message.id
-                      }
-                      className="message-card"
-                      onClick={() =>
-                        openMessage(
-                          message
-                        )
+                      type="button"
+                      className="send-personal-button"
+                      onClick={
+                        sendMessage
                       }
                       disabled={
-                        opening !==
-                        null
+                        sending ||
+                        !messageText.trim()
                       }
                     >
-                      <span>
-                        INCOMING
-                        PERSONAL
-                        MESSAGE
-                      </span>
-
-                      <strong>
-                        OPEN MESSAGE
-                      </strong>
-
-                      <small>
-                        TIMER BEGINS
-                        WHEN OPENED
-                      </small>
+                      {sending
+                        ? "SENDING..."
+                        : "SEND MESSAGE →"}
                     </button>
-                  )
-                )}
+                  </div>
+                </div>
+              )}
+
+              {sendSuccess && (
+                <p className="success-message">
+                  {sendSuccess}
+                </p>
+              )}
+            </div>
+
+            <div className="message-inbox">
+              <div className="inbox-header">
+                <span>
+                  INBOX
+                </span>
+
+                <span>
+                  {messages.length}{" "}
+                  WAITING
+                </span>
               </div>
-            )}
-          </div>
+
+              {messages.length ===
+              0 ? (
+                <div className="empty-inbox">
+                  <p>
+                    NO PERSONAL
+                    MESSAGES
+                  </p>
+
+                  <span>
+                    Messages sent
+                    to your
+                    ORAbit ID will
+                    appear here.
+                  </span>
+                </div>
+              ) : (
+                <div className="message-list">
+                  {messages.map(
+                    (message) => (
+                      <button
+                        key={
+                          message.id
+                        }
+                        className="message-card"
+                        onClick={() =>
+                          openMessage(
+                            message
+                          )
+                        }
+                        disabled={
+                          opening !==
+                          null
+                        }
+                      >
+                        <span>
+                          INCOMING
+                          PERSONAL
+                          MESSAGE
+                        </span>
+
+                        <strong>
+                          OPEN MESSAGE
+                        </strong>
+
+                        <small>
+                          TIMER BEGINS
+                          WHEN OPENED
+                        </small>
+                      </button>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {openedMessage && (
@@ -605,7 +867,9 @@ export default function PersonalMessages() {
             </div>
 
             <div className="message-content">
-              {openedMessage.message}
+              {
+                openedMessage.message
+              }
             </div>
 
             <p className="message-warning">
