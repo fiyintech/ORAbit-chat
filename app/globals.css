@@ -1774,27 +1774,472 @@ input[type="password"]:focus {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 60px 20px;
+  padding: 55px 24px 80px;
 }
 
-.personal-panel {
-  width: 100%;
-  max-width: 760px;
-  position: relative;
-  z-index: 2;
+.personal-panel-wide {
+  max-width: 1180px;
+}
+
+.personal-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+  margin-bottom: 35px;
 }
 
 .personal-panel h1 {
-  margin: 10px 0 35px;
-  font-size: clamp(42px, 8vw, 76px);
-  line-height: 0.9;
-  letter-spacing: -3px;
+  margin: 12px 0 0;
+  font-size: clamp(46px, 7vw, 82px);
+  line-height: 0.86;
+  letter-spacing: -4px;
 }
 
 .profile-id {
+  min-width: 230px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.profile-id span {
+  font-size: 9px;
+  opacity: 0.45;
+  letter-spacing: 2px;
+}
+
+.profile-id strong {
+  font-size: 17px;
+  letter-spacing: 2px;
+}
+
+.personal-status {
+  margin: 0 0 20px;
+}
+
+.personal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.personal-send-panel,
+.message-inbox {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.012);
+}
+
+.panel-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0.45;
+}
+
+.panel-title {
+  margin-top: 22px;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 0.95;
+  letter-spacing: -1px;
+}
+
+.panel-description {
+  max-width: 430px;
+  margin: 16px 0 25px;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.4px;
+  opacity: 0.43;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.search-row input {
+  min-width: 0;
+  width: 100%;
+  height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+  padding: 0 15px;
+  outline: none;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+.search-row input:focus {
+  border-color: rgba(255, 255, 255, 0.42);
+}
+
+.search-row button,
+.message-compose-footer button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: inherit;
+  height: 50px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.search-row button:hover,
+.message-compose-footer button:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.search-row button:active,
+.message-compose-footer button:active {
+  transform: translateY(1px);
+}
+
+.search-row button:disabled,
+.message-compose-footer button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.search-empty {
+  min-height: 190px;
+  margin-top: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 9px;
+}
+
+.search-empty span {
+  font-size: 8px;
+  letter-spacing: 2px;
+  opacity: 0.35;
+}
+
+.search-empty strong {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 500;
+}
+
+.search-empty small {
+  font-size: 9px;
+  opacity: 0.3;
+  letter-spacing: 1px;
+}
+
+.recipient-panel {
+  margin-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.recipient-info {
+  padding: 15px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.recipient-info span {
+  font-size: 8px;
+  letter-spacing: 2px;
+  opacity: 0.4;
+}
+
+.recipient-info strong {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+.recipient-panel textarea {
+  display: block;
+  width: 100%;
+  min-height: 175px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.18);
+  color: inherit;
+  padding: 16px;
+  outline: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.recipient-panel textarea:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.message-compose-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-top: 9px;
+}
+
+.message-compose-footer span {
+  font-size: 9px;
+  letter-spacing: 1px;
+  opacity: 0.3;
+}
+
+.message-compose-footer button {
+  height: 44px;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.message-card {
+  width: 100%;
+  min-height: 92px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background: transparent;
+  color: inherit;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.message-card:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.025);
+  transform: translateX(2px);
+}
+
+.message-card:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.message-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.message-card-top span {
+  font-size: 8px;
+  letter-spacing: 1.8px;
+  opacity: 0.4;
+}
+
+.message-card strong {
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  font-weight: 500;
+}
+
+.message-card small {
+  font-size: 8px;
+  letter-spacing: 1px;
+  opacity: 0.3;
+}
+
+.empty-inbox {
+  min-height: 270px;
+  margin-top: 22px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-icon {
+  margin-bottom: 20px;
+  font-size: 22px;
+  opacity: 0.25;
+}
+
+.empty-inbox p {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 2px;
+}
+
+.empty-inbox span {
+  font-size: 9px;
+  letter-spacing: 1px;
+  opacity: 0.35;
+}
+
+.open-message {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 25px;
+}
+
+.open-message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.open-message-header span {
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0.45;
+}
+
+.open-message-header strong {
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+.message-content {
+  min-height: 260px;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  font-size: clamp(18px, 3vw, 27px);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.message-warning {
+  margin: 18px 0 0;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  opacity: 0.35;
+  text-align: center;
+}
+
+.personal-messages-button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 16px 20px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.personal-messages-button:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 850px) {
+  .personal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .personal-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .profile-id {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .personal-shell {
+    padding: 35px 15px 60px;
+  }
+
+  .personal-panel h1 {
+    font-size: clamp(42px, 14vw, 64px);
+    letter-spacing: -3px;
+  }
+
+  .personal-send-panel,
+  .message-inbox {
+    padding: 18px;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .search-row button {
+    width: 100%;
+  }
+
+  .recipient-info {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .message-compose-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .message-compose-footer button {
+    width: 100%;
+  }
+
+  .message-content {
+    min-height: 230px;
+    padding: 22px;
+  }
+}
+
+/* =========================================================
+   PROFILE ID
+   ========================================================= */
+
+.profile-id {
+  width: 100%;
+  box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.14);
   padding: 18px 20px;
-  margin-bottom: 30px;
+  margin-bottom: 34px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1802,15 +2247,224 @@ input[type="password"]:focus {
 }
 
 .profile-id span {
-  font-size: 11px;
+  font-size: 10px;
   opacity: 0.5;
   letter-spacing: 2px;
 }
 
 .profile-id strong {
-  font-size: 18px;
+  font-size: 17px;
   letter-spacing: 2px;
+  white-space: nowrap;
 }
+
+/* =========================================================
+   PERSONAL COMPOSER
+   ========================================================= */
+
+.personal-composer {
+  width: 100%;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding-top: 22px;
+  margin-bottom: 45px;
+}
+
+.composer-label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  opacity: 0.5;
+}
+
+/* Search row */
+
+.recipient-search {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.recipient-search input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.025);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  outline: none;
+}
+
+.recipient-search input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.recipient-search button {
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.recipient-search button:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.recipient-search button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Recipient result */
+
+.recipient-result {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px 16px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.025);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.recipient-result span {
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  opacity: 0.45;
+}
+
+.recipient-result strong {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+
+/* Message area */
+
+.message-composer {
+  width: 100%;
+}
+
+.message-composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 17px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.025);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  outline: none;
+}
+
+.message-composer textarea:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.message-composer textarea::placeholder {
+  opacity: 0.35;
+}
+
+.message-composer textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Character counter */
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  min-height: 18px;
+}
+
+.message-meta span {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  opacity: 0.4;
+}
+
+/* Send button */
+
+.send-message-button {
+  width: 100%;
+  margin-top: 12px;
+  min-height: 48px;
+  padding: 14px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.send-message-button:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.045);
+  transform: translateY(-1px);
+}
+
+.send-message-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success / error messages */
+
+.error-message,
+.success-message {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+}
+
+.success-message {
+  opacity: 0.75;
+}
+
+/* =========================================================
+   INBOX
+   ========================================================= */
 
 .message-inbox {
   border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -1820,7 +2474,7 @@ input[type="password"]:focus {
   padding: 16px 0;
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 2px;
   opacity: 0.55;
 }
@@ -1833,6 +2487,7 @@ input[type="password"]:focus {
 
 .message-card {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: transparent;
   color: inherit;
@@ -1844,11 +2499,13 @@ input[type="password"]:focus {
   gap: 10px;
   transition:
     border-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
 .message-card:hover {
   border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.025);
   transform: translateY(-2px);
 }
 
@@ -1886,6 +2543,10 @@ input[type="password"]:focus {
   opacity: 0.45;
 }
 
+/* =========================================================
+   OPEN MESSAGE
+   ========================================================= */
+
 .open-message {
   border-top: 1px solid rgba(255, 255, 255, 0.14);
   padding-top: 25px;
@@ -1915,6 +2576,7 @@ input[type="password"]:focus {
   border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
+  box-sizing: border-box;
   font-size: clamp(18px, 3vw, 26px);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -1929,21 +2591,9 @@ input[type="password"]:focus {
   text-align: center;
 }
 
-@media (max-width: 600px) {
-  .personal-shell {
-    padding: 35px 15px;
-  }
-
-  .profile-id {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .message-content {
-    min-height: 220px;
-    padding: 22px;
-  }
-}
+/* =========================================================
+   HOMEPAGE PERSONAL MESSAGES BUTTON
+   ========================================================= */
 
 .personal-messages-button {
   width: 100%;
@@ -1966,4 +2616,58 @@ input[type="password"]:focus {
   border-color: rgba(255, 255, 255, 0.45);
   background: rgba(255, 255, 255, 0.04);
   transform: translateY(-2px);
+}
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .personal-shell {
+    padding: 35px 15px 70px;
+  }
+
+  .personal-panel h1 {
+    margin-bottom: 28px;
+    letter-spacing: -2px;
+  }
+
+  .profile-id {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .profile-id strong {
+    font-size: 15px;
+  }
+
+  .recipient-search {
+    flex-direction: column;
+  }
+
+  .recipient-search input,
+  .recipient-search button {
+    width: 100%;
+    flex: none;
+  }
+
+  .recipient-result {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .message-composer textarea {
+    min-height: 180px;
+  }
+
+  .message-content {
+    min-height: 220px;
+    padding: 22px;
+  }
+
+  .message-timer {
+    gap: 15px;
+  }
 }
