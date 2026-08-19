@@ -196,6 +196,15 @@ export default function Home() {
           )}
         </div>
 
+        <button
+          className="personal-messages-button"
+          onClick={() =>
+            router.push("/personal")
+          }
+        >
+          PERSONAL MESSAGES →
+        </button>
+
         <div className="system-warning">
           <span>●</span>
           ALL CHANNELS ARE

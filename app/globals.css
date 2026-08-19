@@ -1763,3 +1763,207 @@ input[type="password"]:focus {
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================================================
+   ORABIT PERSONAL MESSAGES
+   ========================================================= */
+
+.personal-shell {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 60px 20px;
+}
+
+.personal-panel {
+  width: 100%;
+  max-width: 760px;
+  position: relative;
+  z-index: 2;
+}
+
+.personal-panel h1 {
+  margin: 10px 0 35px;
+  font-size: clamp(42px, 8vw, 76px);
+  line-height: 0.9;
+  letter-spacing: -3px;
+}
+
+.profile-id {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 18px 20px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-id span {
+  font-size: 11px;
+  opacity: 0.5;
+  letter-spacing: 2px;
+}
+
+.profile-id strong {
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.message-inbox {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.inbox-header {
+  padding: 16px 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 2px;
+  opacity: 0.55;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message-card {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: inherit;
+  padding: 22px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.message-card:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  transform: translateY(-2px);
+}
+
+.message-card span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  opacity: 0.45;
+}
+
+.message-card strong {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.message-card small {
+  font-size: 10px;
+  opacity: 0.4;
+  letter-spacing: 1px;
+}
+
+.empty-inbox {
+  padding: 55px 20px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  text-align: center;
+}
+
+.empty-inbox p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+.empty-inbox span {
+  font-size: 12px;
+  opacity: 0.45;
+}
+
+.open-message {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding-top: 25px;
+}
+
+.message-timer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.message-timer span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  opacity: 0.45;
+}
+
+.message-timer strong {
+  font-size: 24px;
+  letter-spacing: 1px;
+}
+
+.message-content {
+  min-height: 180px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  font-size: clamp(18px, 3vw, 26px);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.message-warning {
+  margin-top: 18px;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  opacity: 0.4;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .personal-shell {
+    padding: 35px 15px;
+  }
+
+  .profile-id {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .message-content {
+    min-height: 220px;
+    padding: 22px;
+  }
+}
+
+.personal-messages-button {
+  width: 100%;
+  margin-top: 18px;
+  padding: 16px 20px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.personal-messages-button:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.04);
+  transform: translateY(-2px);
+}
