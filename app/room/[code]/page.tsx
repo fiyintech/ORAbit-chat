@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -63,11 +63,97 @@ export default function RoomPage() {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [adminMessage, setAdminMessage] = useState("");
 
+  const [newMessageNotification, setNewMessageNotification] = useState("");
+  const [notificationPermission, setNotificationPermission] =
+    useState<NotificationPermission>("default");
+
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const notificationTimerRef = useRef<number | null>(null);
+
   const [passwordRequired, setPasswordRequired] = useState(false);
   const [passwordVerified, setPasswordVerified] = useState(false);
   const [roomPassword, setRoomPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [checkingPassword, setCheckingPassword] = useState(false);
+
+  /* ========================================
+     MESSAGE SCROLLING + NOTIFICATIONS
+  ======================================== */
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const scrollChatToBottom = (behavior: ScrollBehavior = "smooth") => {
+    window.requestAnimationFrame(() => {
+      chatEndRef.current?.scrollIntoView({
+        behavior,
+        block: "end",
+      });
+    });
+  };
+
+  const enableNotifications = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+    } catch (error) {
+      console.error("Notification permission error:", error);
+    }
+  };
+
+  const announceNewMessage = (incoming: Message) => {
+    const preview = incoming.content.length > 80
+      ? `${incoming.content.slice(0, 80)}…`
+      : incoming.content;
+
+    setNewMessageNotification(
+      `${incoming.username}: ${preview}`
+    );
+
+    if (notificationTimerRef.current !== null) {
+      window.clearTimeout(notificationTimerRef.current);
+    }
+
+    notificationTimerRef.current = window.setTimeout(() => {
+      setNewMessageNotification("");
+    }, 4500);
+
+    if (
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "granted" &&
+      document.hidden
+    ) {
+      try {
+        new Notification(`ORAbit • ${incoming.username}`, {
+          body: preview,
+        });
+      } catch (error) {
+        console.error("Browser notification error:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (notificationTimerRef.current !== null) {
+        window.clearTimeout(notificationTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
+      scrollChatToBottom("smooth");
+    }
+  }, [messages.length, loading]);
 
   /* ========================================
      VISITOR ID
@@ -522,10 +608,28 @@ export default function RoomPage() {
           filter: `room_id=eq.${room.id}`,
         },
         (payload) => {
-          setMessages((current) => [
-            ...current,
-            payload.new as Message,
-          ]);
+          const incoming = payload.new as Message;
+
+          setMessages((current) => {
+            const exists = current.some(
+              (item) => item.id === incoming.id
+            );
+
+            if (exists) {
+              return current;
+            }
+
+            return [
+              ...current,
+              incoming,
+            ];
+          });
+
+          if (incoming.username !== username) {
+            announceNewMessage(incoming);
+          }
+
+          scrollChatToBottom("smooth");
         }
       )
       .subscribe();
@@ -1021,6 +1125,7 @@ export default function RoomPage() {
     }
 
     setMessage("");
+    scrollChatToBottom("smooth");
   };
 
   /* ========================================
@@ -1443,6 +1548,23 @@ export default function RoomPage() {
                 ? "✓ COPIED"
                 : "↗ SHARE ROOM"}
             </button>
+
+            <button
+              className="notification-button"
+              onClick={enableNotifications}
+              disabled={notificationPermission === "granted"}
+              title={
+                notificationPermission === "granted"
+                  ? "New message alerts are enabled"
+                  : "Enable new message alerts"
+              }
+            >
+              {notificationPermission === "granted"
+                ? "✓ ALERTS ON"
+                : notificationPermission === "denied"
+                ? "ALERTS BLOCKED"
+                : "🔔 ALERTS"}
+            </button>
           </div>
         </div>
 
@@ -1474,6 +1596,7 @@ export default function RoomPage() {
 
       {isAdmin && (
         <div
+          className="room-admin-bar"
           style={{
             position: "relative",
             zIndex: 3,
@@ -1949,7 +2072,13 @@ export default function RoomPage() {
           messages.map(
             (msg) => (
               <div
-                className="message"
+                className={`message ${
+                  onlineCount <= 2
+                    ? msg.username === username
+                      ? "message-outgoing"
+                      : "message-incoming"
+                    : ""
+                }`}
                 key={msg.id}
               >
                 <span className="username">
@@ -1963,7 +2092,23 @@ export default function RoomPage() {
             )
           )
         )}
+
+        <div ref={chatEndRef} className="chat-end-anchor" />
       </section>
+
+      {newMessageNotification && (
+        <button
+          type="button"
+          className="new-message-toast"
+          onClick={() => {
+            setNewMessageNotification("");
+            scrollChatToBottom("smooth");
+          }}
+        >
+          <span className="new-message-toast-label">NEW MESSAGE</span>
+          <span>{newMessageNotification}</span>
+        </button>
+      )}
 
       {/* COMPOSER */}
 
@@ -2033,6 +2178,221 @@ export default function RoomPage() {
           </>
         )}
       </div>
+
+      <style jsx global>{`
+        .room-header {
+          position: sticky !important;
+          top: 0;
+          z-index: 40 !important;
+        }
+
+        .room-admin-bar {
+          position: sticky !important;
+          top: 91px;
+          z-index: 39 !important;
+          backdrop-filter: blur(16px);
+        }
+
+        .chat-area {
+          scroll-margin-top: 120px;
+        }
+
+        .chat-end-anchor {
+          width: 1px;
+          height: 1px;
+          margin: 0;
+          padding: 0;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .notification-button {
+          background: rgba(168, 85, 247, 0.035);
+          border: 1px solid #34233f;
+          color: #92889a;
+          padding: 8px 11px;
+          font-family: var(--display);
+          font-size: 7px;
+          letter-spacing: 1px;
+          cursor: pointer;
+          transition:
+            color 0.2s,
+            border-color 0.2s,
+            background 0.2s,
+            transform 0.2s;
+        }
+
+        .notification-button:hover:not(:disabled) {
+          color: var(--purple-bright);
+          border-color: var(--purple);
+          background: rgba(168, 85, 247, 0.09);
+          transform: translateY(-1px);
+        }
+
+        .notification-button:disabled {
+          opacity: 0.6;
+          cursor: default;
+        }
+
+        .message.message-incoming,
+        .message.message-outgoing {
+          width: min(78%, 760px);
+        }
+
+        .message.message-outgoing {
+          margin-left: auto;
+          margin-right: 0;
+          border-left-color: transparent;
+          border-right: 1px solid rgba(168, 85, 247, 0.35);
+          background: linear-gradient(
+            270deg,
+            rgba(168, 85, 247, 0.09),
+            transparent 75%
+          );
+        }
+
+        .message.message-outgoing::before {
+          order: 3;
+        }
+
+        .message.message-outgoing:hover {
+          border-left-color: transparent;
+          border-right-color: var(--purple);
+          background: linear-gradient(
+            270deg,
+            rgba(168, 85, 247, 0.13),
+            transparent 80%
+          );
+        }
+
+        .message.message-outgoing .username {
+          text-align: right;
+        }
+
+        .message.message-outgoing .message-content {
+          text-align: right;
+        }
+
+        .new-message-toast {
+          position: fixed;
+          left: 50%;
+          bottom: 78px;
+          transform: translateX(-50%);
+          z-index: 80;
+          width: min(520px, calc(100vw - 30px));
+          padding: 10px 14px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          background: rgba(12, 6, 18, 0.96);
+          border: 1px solid rgba(168, 85, 247, 0.55);
+          color: #eee8f2;
+          font-family: var(--mono);
+          font-size: 10px;
+          text-align: left;
+          cursor: pointer;
+          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), 0 0 22px rgba(168, 85, 247, 0.16);
+          backdrop-filter: blur(16px);
+          animation: fadeUp 0.22s ease both;
+        }
+
+        .new-message-toast-label {
+          flex: 0 0 auto;
+          color: var(--purple-bright);
+          font-family: var(--display);
+          font-size: 7px;
+          letter-spacing: 1.7px;
+        }
+
+        html[data-theme="light"] .notification-button {
+          background: #ffffff !important;
+          border-color: #aeb6b2 !important;
+          color: #303733 !important;
+        }
+
+        html[data-theme="light"] .notification-button:hover:not(:disabled) {
+          background: #faf7fc !important;
+          border-color: var(--orabit-accent) !important;
+          color: var(--orabit-accent) !important;
+        }
+
+        html[data-theme="light"] .message.message-outgoing {
+          border-right-color: rgba(116, 23, 173, 0.38);
+          background: linear-gradient(
+            270deg,
+            rgba(116, 23, 173, 0.07),
+            transparent 75%
+          );
+        }
+
+        html[data-theme="light"] .message.message-outgoing:hover {
+          border-right-color: var(--orabit-accent);
+          background: linear-gradient(
+            270deg,
+            rgba(116, 23, 173, 0.1),
+            transparent 80%
+          );
+        }
+
+        html[data-theme="light"] .new-message-toast {
+          background: rgba(255, 255, 255, 0.97);
+          border-color: #aeb6b2;
+          color: #202522;
+          box-shadow: 0 12px 35px rgba(35, 40, 37, 0.12), 0 0 22px rgba(116, 23, 173, 0.08);
+        }
+
+        html[data-theme="light"] .new-message-toast-label {
+          color: var(--orabit-accent);
+        }
+
+        @media (max-width: 700px) {
+          .room-admin-bar {
+            top: 126px;
+          }
+
+          .room-title-row {
+            padding-right: 100px;
+          }
+
+          .notification-button,
+          .share-button {
+            padding: 7px 9px;
+            font-size: 6px;
+          }
+
+          .message.message-incoming,
+          .message.message-outgoing {
+            width: min(88%, 760px);
+          }
+
+          .new-message-toast {
+            bottom: 66px;
+            font-size: 9px;
+          }
+        }
+
+        @media (max-width: 430px) {
+          .room-admin-bar {
+            top: 132px;
+          }
+
+          .room-title-row {
+            padding-right: 0;
+          }
+
+          .message.message-incoming,
+          .message.message-outgoing {
+            width: 92%;
+          }
+
+          .new-message-toast {
+            width: calc(100vw - 18px);
+            bottom: 62px;
+            padding: 9px 11px;
+          }
+        }
+      `}</style>
     </main>
   );
 }
