@@ -1027,17 +1027,28 @@ export default function RoomPage() {
      TIMER
   ======================================== */
 
-  const minutes = Math.floor(
-    secondsLeft / 60
+  const timerHours = Math.floor(
+    secondsLeft / 3600
+  );
+
+  const timerMinutes = Math.floor(
+    (secondsLeft % 3600) / 60
   )
     .toString()
     .padStart(2, "0");
 
-  const seconds = (
+  const timerSeconds = (
     secondsLeft % 60
   )
     .toString()
     .padStart(2, "0");
+
+  const formattedTime =
+    timerHours > 0
+      ? `${timerHours
+          .toString()
+          .padStart(2, "0")}:${timerMinutes}:${timerSeconds}`
+      : `${timerMinutes}:${timerSeconds}`;
 
   /* ========================================
      LOADING
@@ -1453,7 +1464,7 @@ export default function RoomPage() {
             </span>
 
             <strong>
-              {minutes}:{seconds}
+              {formattedTime}
             </strong>
           </div>
         </div>
